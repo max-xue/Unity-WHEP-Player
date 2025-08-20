@@ -63,7 +63,7 @@ public class WHEPClient : IDisposable
 	/// </summary>
 	public event StreamLogDelegate OnLog;
 
-	public WHEPClient(string endpoint)
+	public WHEPClient(string endpoint,AudioSource recorder)
 	{
 		_stream = new MediaStream();
 		/*
@@ -76,12 +76,9 @@ public class WHEPClient : IDisposable
 		// config.iceServers = new[] {new RTCIceServer {urls = new[] {"stun:stun.cloudflare.com:3478"}}};
 		config.bundlePolicy = RTCBundlePolicy.BundlePolicyMaxBundle;
 		_peerConnection = new RTCPeerConnection(ref config);
+		AddAudioTrack(recorder);
 
 		_peerConnection.AddTransceiver(TrackKind.Video, new RTCRtpTransceiverInit
-		{
-			direction = RTCRtpTransceiverDirection.RecvOnly
-		});
-		_peerConnection.AddTransceiver(TrackKind.Audio, new RTCRtpTransceiverInit
 		{
 			direction = RTCRtpTransceiverDirection.RecvOnly
 		});
@@ -126,6 +123,32 @@ public class WHEPClient : IDisposable
 	{
 		_peerConnection?.Dispose();
 		_stream?.Dispose();
+	}
+
+	private void AddAudioTrack(AudioSource audioSource)
+	{
+		// 确保麦克风可用
+		if (Microphone.devices.Length > 0)
+		{
+			string deviceName = Microphone.devices[0];
+			Debug.Log($"[WebRTC] 使用麦克风: {deviceName}");
+
+			var audioClip = Microphone.Start(deviceName, true, 2, 48000);
+			audioSource.clip = audioClip;
+			audioSource.loop = true;
+
+			// 等待麦克风缓冲
+			while (!(Microphone.GetPosition(deviceName) > 0)) { }
+			audioSource.Play();
+
+			// 创建音频轨道并添加
+			var audioTrack = new AudioStreamTrack(audioSource);
+			_peerConnection.AddTrack(audioTrack);
+		}
+		else
+		{
+			Debug.LogWarning("[WebRTC] 没有检测到麦克风设备，将无法发送音频");
+		}
 	}
 
 	// TODO: Move following code to separate class since it is potentially shared with WHIPClient too

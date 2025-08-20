@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.WebRTC;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public delegate void VideoTextureChangedDelegate(Texture texture);
 
@@ -40,10 +41,12 @@ public class WebRTCPlayer : MonoBehaviour
 
     private WHEPClient _client;
 
-    /// <summary>
-    /// URL to a WHEP endpoint.
-    /// </summary>
-    [SerializeField] public string Url;
+	/// <summary>
+	/// URL to a WHEP endpoint.
+	/// local test:http://127.0.0.1:8080/offer
+	/// http://xx:1985/rtc/v1/whep/?app=live&stream=gr1p24ap0043
+	/// </summary>
+	[SerializeField] public string Url;
 
     /// <summary>
     /// List of materials to apply to the video stream texture on automatically.
@@ -54,6 +57,10 @@ public class WebRTCPlayer : MonoBehaviour
     /// List of audio sources to apply the audio stream automatically.
     /// </summary>
     [SerializeField] public List<AudioSource> AudioSources = new List<AudioSource>();
+
+    [SerializeField] private AudioSource Recorder;
+
+    public AudioMixerGroup remoteAudioMixerGroup;
 
     public PlayerState State { get; private set; } = PlayerState.None;
 
@@ -84,7 +91,7 @@ public class WebRTCPlayer : MonoBehaviour
 
         State = PlayerState.Connecting;
 
-        _client = new WHEPClient(Url);
+        _client = new WHEPClient(Url,Recorder);
         _client.OnStreamReady += (stream) =>
         {
             State = PlayerState.Playing;
@@ -98,9 +105,14 @@ public class WebRTCPlayer : MonoBehaviour
             var audioTrack = stream.GetAudioTracks().FirstOrDefault();
             if (audioTrack != null)
             {
-                SetAudio(audioTrack);
+				//var processor = gameObject.AddComponent<RemoteAudioProcessor>();
+				//processor.remoteAudioMixerGroup = remoteAudioMixerGroup; // 在 Inspector 绑定 Mixer Group
+				//processor.AttachToRemoteTrack(audioTrack);
+
+				SetAudio(audioTrack);
+
             }
-        };
+		};
 
         _client.OnError += (error) =>
         {
@@ -143,4 +155,9 @@ public class WebRTCPlayer : MonoBehaviour
             source.Play();
         }
     }
+
+	private void OnApplicationQuit()
+	{
+		Stop();
+	}
 }

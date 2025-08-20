@@ -165,7 +165,9 @@ PlayerSettings:
   resetResolutionOnWindowResize: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
-  applicationIdentifier: {}
+  applicationIdentifier:
+    Android: com.DefaultCompany.VRC_WEBRTC_WHEP
+    Standalone: com.DefaultCompany.VRC-WEBRTC-WHEP
   buildNumber:
     Standalone: 0
     iPhone: 0

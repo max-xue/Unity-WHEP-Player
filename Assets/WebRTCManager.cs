@@ -10,13 +10,13 @@ public class WebRTCManager : Singleton<WebRTCManager>
 {
     protected override void Awake_Impl()
     {
-        WebRTC.Initialize(true, false);
+        //WebRTC.Initialize(true, false);
         StartCoroutine(WebRTC.Update());
     }
 
     private void OnApplicationQuit()
     {
-        WebRTC.Dispose();
+        //WebRTC.Dispose();
     }
 
     public void RegisterPlayer(WebRTCPlayer player)
